@@ -3,10 +3,8 @@
   "services": {
     "api": {
       "root": "apps/api",
-      
-      "runtime": "node",
-      "entrypoint": "src/server.ts"
-
+      "runtime": "container",
+      "entrypoint": "Dockerfile.vercel"
     },
     "web": {
       "root": "apps/web",
