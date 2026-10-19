@@ -1,6 +1,7 @@
 {
   "name": "@jfit/mobile",
   "private": true,
+  "type": "module",
   "version": "0.1.0",
   "main": "expo/AppEntry",
   "scripts": { "start": "expo start", "android": "expo run:android", "ios": "expo run:ios", "typecheck": "tsc --noEmit" },
