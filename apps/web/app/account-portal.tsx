@@ -4,7 +4,8 @@ import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 
 type Mode = 'login' | 'register' | 'recover' | 'resend' | 'verify' | 'reset';
-const apiBase = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+const apiBase = process.env.NEXT_PUBLIC_API_URL ?? (process.env.VERCEL ? '/api' : 'http://localhost:4000');
+
 
 export default function AccountPortal({ initialMode = 'login' }: { initialMode?: Mode }) {
   const [mode, setMode] = useState<Mode>(initialMode);
