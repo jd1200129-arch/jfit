@@ -1,0 +1,9 @@
+{
+  "name": "@jfit/mobile",
+  "private": true,
+  "version": "0.1.0",
+  "main": "expo/AppEntry",
+  "scripts": { "start": "expo start", "android": "expo run:android", "ios": "expo run:ios", "typecheck": "tsc --noEmit" },
+  "dependencies": { "expo": "58.0.0", "expo-secure-store": "15.0.0", "react": "19.2.0", "react-native": "0.83.0" },
+  "devDependencies": { "@types/react": "19.2.0", "typescript": "5.9.3" }
+}

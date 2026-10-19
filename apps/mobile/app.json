@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "Jfit",
+    "slug": "jfit",
+    "scheme": "jfit",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": { "supportsTablet": true, "bundleIdentifier": "uk.jfit.app" },
+    "android": { "package": "uk.jfit.app", "adaptiveIcon": { "backgroundColor": "#d7fa5b" } },
+    "plugins": ["expo-secure-store"]
+  }
+}
