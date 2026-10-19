@@ -429,7 +429,20 @@ const server = createServer(async (req, res) => {
           },
           requestId,
         });
-      } catch {
+      } catch (error) {
+        const databaseError =
+          error && typeof error === "object"
+            ? (error as { code?: unknown }).code
+            : undefined;
+        console.error(
+          JSON.stringify({
+            event: "api_database_health_failed",
+            requestId,
+            errorName: error instanceof Error ? error.name : "UnknownError",
+            errorCode:
+              typeof databaseError === "string" ? databaseError : undefined,
+          }),
+        );
         return apiError(
           res,
           503,
@@ -988,6 +1001,12 @@ const server = createServer(async (req, res) => {
         requestId,
         method: req.method,
         path: req.url,
+        errorName: error instanceof Error ? error.name : "UnknownError",
+        errorCode:
+          error && typeof error === "object" &&
+          typeof (error as { code?: unknown }).code === "string"
+            ? (error as { code: string }).code
+            : undefined,
       }),
     );
     return apiError(
