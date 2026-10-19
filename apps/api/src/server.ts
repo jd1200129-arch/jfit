@@ -43,11 +43,22 @@ const appUrl =
   (process.env.VERCEL_ENV === "production" &&
   process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "");
+    : process.env.VERCEL_BRANCH_URL
+      ? `https://${process.env.VERCEL_BRANCH_URL}`
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "");
 
 const appOrigin = appUrl ? new URL(appUrl).origin : "";
+const allowedAppOrigins = new Set(
+  [
+    appOrigin,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "",
+    process.env.VERCEL_BRANCH_URL
+      ? `https://${process.env.VERCEL_BRANCH_URL}`
+      : "",
+  ].filter(Boolean),
+);
 const rateSecret =
   process.env.AUTH_RATE_LIMIT_SECRET ?? process.env.SESSION_SECRET ?? "";
 const secureCookie = appOrigin.startsWith("https://");
@@ -133,7 +144,7 @@ function requireAllowedRequestOrigin(
   const origin = req.headers.origin;
   // Requests without Origin are treated as untrusted non-browser transports. Authentication
   // still requires credentials and these requests never receive a cookie session.
-  if (allowsPublicAuthRequest(origin, appOrigin)) return true;
+  if (allowsPublicAuthRequest(origin, allowedAppOrigins)) return true;
   apiError(
     res,
     403,
@@ -149,7 +160,7 @@ function requireBrowserOrigin(
   res: ServerResponse,
   requestId: string,
 ): boolean {
-  if (allowsCookieMutation(req.headers.origin, appOrigin)) return true;
+  if (allowsCookieMutation(req.headers.origin, allowedAppOrigins)) return true;
   apiError(
     res,
     403,
@@ -375,13 +386,13 @@ const server = createServer(async (req, res) => {
       url.pathname = url.pathname.slice("/api".length);
 
     const origin = req.headers.origin;
-    if (origin && origin === appOrigin) {
+    if (origin && allowedAppOrigins.has(origin)) {
       res.setHeader("Access-Control-Allow-Origin", origin);
       res.setHeader("Access-Control-Allow-Credentials", "true");
       res.setHeader("Vary", "Origin");
     }
     if (req.method === "OPTIONS") {
-      if (!origin || origin !== appOrigin)
+      if (!origin || !allowedAppOrigins.has(origin))
         return apiError(
           res,
           403,
@@ -581,7 +592,7 @@ const server = createServer(async (req, res) => {
         } finally {
           client.release();
         }
-        const transport = loginTransport(req.headers.origin, appOrigin);
+        const transport = loginTransport(req.headers.origin, allowedAppOrigins);
         if (transport === "reject")
           return apiError(
             res,

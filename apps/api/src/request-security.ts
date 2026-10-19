@@ -1,24 +1,32 @@
 export type LoginTransport = "cookie" | "bearer" | "reject";
 
+type AppOrigins = string | ReadonlySet<string>;
+
+function isAllowedOrigin(origin: string, appOrigins: AppOrigins): boolean {
+  return typeof appOrigins === "string"
+    ? appOrigins !== "" && origin === appOrigins
+    : appOrigins.has(origin);
+}
+
 export function allowsPublicAuthRequest(
   origin: string | undefined,
-  appOrigin: string,
+  appOrigins: AppOrigins,
 ): boolean {
   if (origin === undefined) return true;
-  return appOrigin !== "" && origin === appOrigin;
+  return isAllowedOrigin(origin, appOrigins);
 }
 
 export function allowsCookieMutation(
   origin: string | undefined,
-  appOrigin: string,
+  appOrigins: AppOrigins,
 ): boolean {
-  return appOrigin !== "" && origin === appOrigin;
+  return origin !== undefined && isAllowedOrigin(origin, appOrigins);
 }
 
 export function loginTransport(
   origin: string | undefined,
-  appOrigin: string,
+  appOrigins: AppOrigins,
 ): LoginTransport {
   if (origin === undefined) return "bearer";
-  return appOrigin !== "" && origin === appOrigin ? "cookie" : "reject";
+  return isAllowedOrigin(origin, appOrigins) ? "cookie" : "reject";
 }
