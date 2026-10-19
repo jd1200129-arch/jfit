@@ -1,0 +1,32 @@
+name: Jfit release source archive
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  source-archive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the released source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+
+      - name: Build source archive and checksum
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          git archive --format=tar.gz --prefix="jfit-${RELEASE_TAG}/" -o jfit-source.tar.gz HEAD
+          sha256sum jfit-source.tar.gz > SHA256SUMS
+
+      - name: Attach source archive and checksum to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" jfit-source.tar.gz SHA256SUMS --clobber
