@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './styles.css';
+import MetaPixel from './meta-pixel';
 
 export const metadata: Metadata = {
   title: 'Jfit — Make space for stronger',
@@ -7,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en-GB"><body>{children}</body></html>;
+  return <html lang="en-GB"><body>{children}<MetaPixel /></body></html>;
 }
