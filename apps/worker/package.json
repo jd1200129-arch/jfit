@@ -1,0 +1,8 @@
+{
+  "name": "@jfit/worker",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "node --env-file=../../.env.local --import tsx --watch src/worker.ts", "start": "node --env-file=../../.env.local dist/worker.js", "build": "tsc", "typecheck": "tsc --noEmit" },
+  "dependencies": { "pg": "8.16.3" },
+  "devDependencies": { "@types/node": "22.19.0", "@types/pg": "8.15.5", "tsx": "4.20.6", "typescript": "5.9.3" }
+}
