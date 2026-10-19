@@ -23,6 +23,9 @@ export default function AccountPortal({
   const [busy, setBusy] = useState(false);
   const [token, setToken] = useState("");
   const [signedIn, setSignedIn] = useState(false);
+  const [emailDeliveryConfigured, setEmailDeliveryConfigured] = useState<
+    boolean | null
+  >(null);
   const [profile, setProfile] = useState<{
     display_name: string;
     email: string;
@@ -36,6 +39,23 @@ export default function AccountPortal({
     }>
   >([]);
   const [sessionAction, setSessionAction] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    void fetch(`${apiBase}/health`)
+      .then(async (response) => {
+        if (!response.ok) return;
+        const health = await response.json();
+        if (active)
+          setEmailDeliveryConfigured(
+            health?.checks?.email === "configured_unverified",
+          );
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const search = new URLSearchParams(window.location.hash.slice(1));
@@ -463,11 +483,13 @@ export default function AccountPortal({
             Resend verification
           </button>
         )}
-        <div className="account-provider-note">
-          Email delivery must be connected by Jfit before verification and
-          recovery messages can arrive. Registration requests remain generic to
-          protect account privacy.
-        </div>
+        {emailDeliveryConfigured === false && (
+          <div className="account-provider-note">
+            Email verification and recovery are not set up yet. Account requests
+            stay private, but those messages cannot arrive until Jfit email
+            delivery is enabled.
+          </div>
+        )}
       </section>
     </main>
   );

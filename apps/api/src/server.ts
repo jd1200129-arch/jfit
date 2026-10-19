@@ -408,7 +408,9 @@ const server = createServer(async (req, res) => {
           checks: {
             database: "ok",
             email:
-              process.env.RESEND_API_KEY && process.env.EMAIL_FROM
+              process.env.EMAIL_DELIVERY_ENABLED === "true" &&
+              process.env.RESEND_API_KEY &&
+              process.env.EMAIL_FROM
                 ? "configured_unverified"
                 : "not_configured",
             rateLimits:

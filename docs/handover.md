@@ -23,7 +23,7 @@
 - On 19 October, built the web app in the isolated preview copy after adding the Membership plan comparison. Next.js compiled successfully, TypeScript passed and `/membership` was statically prerendered. Visual QA remains outstanding.
 - Generated image tool call produced no usable output; current CSS hero art is the delivered asset.
 
-Email actions are queued in PostgreSQL's outbox. The delivery worker requires `RESEND_API_KEY`, `EMAIL_FROM` and a verified sender domain; those are not configured here, so no messages were delivered. Age is a self-declared date-of-birth gate, not verified age assurance.
+Email actions are queued in PostgreSQL's outbox. The Vercel Daemon and worker image are configured, but delivery stays disabled until `EMAIL_DELIVERY_ENABLED=true`, a Resend `RESEND_API_KEY`, and an `EMAIL_FROM` address on a verified sender domain are set in Vercel Preview. Those provider settings are not configured here, so no messages were delivered. Age is a self-declared date-of-birth gate, not verified age assurance.
 
 ## Before real customer use
 
