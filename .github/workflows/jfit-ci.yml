@@ -53,6 +53,9 @@ jobs:
       - name: Run API unit and PostgreSQL integration tests
         run: npm test --workspace @jfit/api
 
+      - name: Lint TypeScript workspaces
+        run: npm run lint
+
       - name: Build API and worker
         run: |
           npm run build --workspace @jfit/api
@@ -61,10 +64,16 @@ jobs:
       - name: Build web application
         run: npm run build --workspace @jfit/web
 
+      - name: Report dependency advisories
+        # Existing Expo/React Native advisories are documented as a release blocker.
+        continue-on-error: true
+        run: npm audit --audit-level=high
+
       - name: Check whitespace and formatting
         run: |
           git diff --check
           npx --yes prettier@3.9.6 --check \
+            package.json \
             apps/api/src/server.ts \
             apps/api/src/completions.ts \
             apps/api/src/product-pagination.ts \
@@ -75,6 +84,7 @@ jobs:
             apps/mobile/src/secure-session.ts \
             apps/mobile/src/session-actions.ts \
             apps/web/app/account-portal.tsx apps/web/lib/session-actions.ts \
+            eslint.config.mjs \
             docs/audit.md docs/deployment-readiness.md docs/feature-matrix.md \
             docs/implementation-roadmap.md docs/security-checklist.md docs/testing-strategy.md
 
