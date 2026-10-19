@@ -5,10 +5,14 @@ import { Pool, type PoolClient } from 'pg';
 import { hasStaffPermission, permissionsForRole, staffRoleForUser } from './authorization.js';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 10, idleTimeoutMillis: 30_000 });
-const port = Number(process.env.API_PORT ?? 4000);
+const port = Number(process.env.PORT ?? process.env.API_PORT ?? 4000);
 const sessionTtlSeconds = 60 * 60 * 24 * 30;
+
 const sessionCookie = 'jfit_session';
-const appUrl = process.env.APP_URL ?? '';
+
+const appUrl = process.env.APP_URL ?? (process.env.VERCEL_ENV === 'production' && process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
+
+
 const appOrigin = appUrl ? new URL(appUrl).origin : '';
 const rateSecret = process.env.AUTH_RATE_LIMIT_SECRET ?? process.env.SESSION_SECRET ?? '';
 const secureCookie = appOrigin.startsWith('https://');
@@ -159,7 +163,11 @@ async function consumeToken(client: PoolClient, token: unknown, purpose: 'verify
 const server = createServer(async (req, res) => {
   const requestId = randomUUID();
   try {
+    
     const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
+    if (url.pathname === '/api') url.pathname = '/';
+    else if (url.pathname.startsWith('/api/')) url.pathname = url.pathname.slice('/api'.length);
+
     const origin = req.headers.origin;
     if (origin && origin === appOrigin) {
       res.setHeader('Access-Control-Allow-Origin', origin);
