@@ -3,7 +3,10 @@
   "services": {
     "api": {
       "root": "apps/api",
-      "runtime": "node"
+      
+      "runtime": "node",
+      "entrypoint": "src/server.ts"
+
     },
     "web": {
       "root": "apps/web",
