@@ -3,9 +3,18 @@ import { Pool, type PoolClient } from 'pg';
 
 const apiKey = process.env.RESEND_API_KEY ?? '';
 const from = process.env.EMAIL_FROM ?? '';
-if (!process.env.DATABASE_URL || !apiKey || !from) {
-  console.error(JSON.stringify({ event: 'email_worker_unconfigured', database: Boolean(process.env.DATABASE_URL), providerKey: Boolean(apiKey), sender: Boolean(from) }));
-  process.exit(1);
+const deliveryEnabled = process.env.EMAIL_DELIVERY_ENABLED === 'true';
+if (!deliveryEnabled || !process.env.DATABASE_URL || !apiKey || !from) {
+  console.info(JSON.stringify({ event: 'email_worker_disabled', database: Boolean(process.env.DATABASE_URL), providerKey: Boolean(apiKey), sender: Boolean(from), explicitlyEnabled: deliveryEnabled }));
+  await new Promise<void>(() => {
+    const keepAlive = setInterval(() => {}, 60_000);
+    const stop = () => {
+      clearInterval(keepAlive);
+      process.exit(0);
+    };
+    process.once('SIGINT', stop);
+    process.once('SIGTERM', stop);
+  });
 }
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 4, idleTimeoutMillis: 30_000 });

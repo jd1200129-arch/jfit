@@ -1,0 +1,106 @@
+name: Jfit CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, "fix/**", "feature/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: jfit
+          POSTGRES_PASSWORD: jfit-test-only
+          POSTGRES_DB: jfit_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U jfit -d jfit_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://jfit:jfit-test-only@localhost:5432/jfit_test
+      JFIT_TEST_DATABASE_URL: postgresql://jfit:jfit-test-only@localhost:5432/jfit_test
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Install workspace dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Validate database migration
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f apps/api/migrations/0001_initial.sql
+          test "$(psql "$DATABASE_URL" -Atc "SELECT to_regclass('public.completions') IS NOT NULL AND to_regclass('public.product_variants') IS NOT NULL")" = "t"
+
+      - name: Typecheck every workspace
+        run: npm run typecheck
+
+      - name: Run API unit and PostgreSQL integration tests
+        run: npm test --workspace @jfit/api
+
+      - name: Lint TypeScript workspaces
+        run: npm run lint
+
+      - name: Build API and worker
+        run: |
+          npm run build --workspace @jfit/api
+          npm run build --workspace @jfit/worker
+
+      - name: Build web application
+        run: npm run build --workspace @jfit/web
+
+      - name: Report dependency advisories
+        # Existing Expo/React Native advisories are documented as a release blocker.
+        continue-on-error: true
+        run: npm audit --audit-level=high
+
+      - name: Check whitespace and formatting
+        run: |
+          git diff --check
+          npx --yes prettier@3.9.6 --check \
+            package.json \
+            apps/api/src/server.ts \
+            apps/api/src/completions.ts \
+            apps/api/src/product-pagination.ts \
+            apps/api/src/request-security.ts \
+            apps/api/test/pagination-completions.test.ts \
+            apps/mobile/App.tsx \
+            apps/mobile/src/offline-progress.ts \
+            apps/mobile/src/secure-session.ts \
+            apps/mobile/src/session-actions.ts \
+            apps/web/app/account-portal.tsx apps/web/lib/session-actions.ts \
+            eslint.config.mjs \
+            docs/audit.md docs/deployment-readiness.md docs/feature-matrix.md \
+            docs/implementation-roadmap.md docs/security-checklist.md docs/testing-strategy.md
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out full history for secret scanning
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan repository history for secrets
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: "false"

@@ -11,6 +11,15 @@
       "framework": "nextjs"
     }
   },
+  "daemons": {
+    "email-delivery": {
+      "root": "apps/worker",
+      "entrypoint": "Dockerfile.vercel",
+      "replicas": {
+        "iad1": 1
+      }
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",

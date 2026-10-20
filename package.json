@@ -1,21 +1,29 @@
 {
   "name": "jfit",
-  
- "private": true,
- "type": "module",
-
+  "private": true,
+  "type": "module",
   "version": "0.1.0",
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "npm run dev -w @jfit/web",
     "dev:api": "npm run dev -w @jfit/api",
     "dev:worker": "npm run dev -w @jfit/worker",
     "build": "npm run build -w @jfit/web",
+    "lint": "eslint apps/api/src apps/api/test apps/mobile apps/web/app apps/web/lib apps/worker/src packages/contracts",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "db:up": "docker compose up -d db",
     "db:down": "docker compose down",
     "db:migrate": "node --env-file=.env.local scripts/migrate.mjs",
     "db:seed:dev": "node --env-file=.env.local scripts/seed-dev.mjs"
   },
-  "engines": { "node": ">=20.9" }
+  "engines": {
+    "node": ">=20.9"
+  },
+  "devDependencies": {
+    "eslint": "10.13.0",
+    "typescript-eslint": "8.71.2"
+  }
 }
