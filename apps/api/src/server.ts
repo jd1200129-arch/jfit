@@ -1003,7 +1003,8 @@ const server = createServer(async (req, res) => {
         path: req.url,
         errorName: error instanceof Error ? error.name : "UnknownError",
         errorCode:
-          error && typeof error === "object" &&
+          error &&
+          typeof error === "object" &&
           typeof (error as { code?: unknown }).code === "string"
             ? (error as { code: string }).code
             : undefined,
